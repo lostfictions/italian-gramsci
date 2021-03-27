@@ -148,14 +148,20 @@ const paras = readFileSync(
   .filter((l) => l !== l.toUpperCase());
 
 const sentences = paras
-  .flatMap((par) =>
-    par
+  .flatMap((par) => {
+    const ss = par
       // naive sentence split https://stackoverflow.com/a/18914855
       .replace(/([.?!])\s*(?=[A-Z])/g, "$1|")
-      .split("|")
-      // should insert a "maybe-exclamation" marker instead.
-      .concat(exclamations[exclamationIdx++ % exclamations.length])
-  )
+      .split("|");
+
+    // could alternately insert a marker instead of an exclamation proper and
+    // have logic later to decide whether to insert or ignore
+    if (ss.length > 3) {
+      return ss.concat(exclamations[exclamationIdx++ % exclamations.length]);
+    }
+    return ss;
+  })
+  // offset for debugging
   .slice(0);
 
 const MAX_LENGTH = 280;
