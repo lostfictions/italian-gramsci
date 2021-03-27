@@ -11,10 +11,11 @@ import { MASTODON_SERVER, MASTODON_TOKEN } from "./env";
 const vowel = /[aeiou]/;
 const letter = /[a-zA-Z]/;
 const punc = /[,:.!]/;
+const isUpper = (c: string) => c === c.toUpperCase();
 
 const mappings: Record<string, string> = {
   // could be contextual: 'de elite' vs 'da tendentiousness'
-  the: "da",
+  // the: "da",
   then: "den",
   this: "dis",
   that: "dat",
@@ -22,7 +23,10 @@ const mappings: Record<string, string> = {
   those: "doze",
   they: "dey",
   there: "dere",
+  their: "dere",
 };
+
+const itals = new Set(Object.values(mappings).concat("da", "de"));
 
 const wordRep = (w: string) => {
   let adjusted = [w];
@@ -33,7 +37,7 @@ const wordRep = (w: string) => {
   const r = mappings[adjusted[0].toLowerCase()];
   if (!r) return w;
 
-  const upper = adjusted[0][0] === adjusted[0][0].toUpperCase();
+  const upper = isUpper(adjusted[0][0]);
   if (upper) {
     adjusted[0] = `${r[0].toUpperCase()}${r.slice(1)}`;
   } else {
@@ -54,12 +58,28 @@ function italianize(sentence: string): string {
     const a = words[i];
     const b = words[i + 1];
 
-    if ((a === "is" || a === "of") && (b === "a" || b === "an")) {
-      words[i] = `${a}-a`;
+    // is a, of an => is-a da, of-a de
+    if (["is", "of", "as"].includes(a) && ["a", "an"].includes(b)) {
+      // words[i] = `${a}-a`;
       words[i + 1] = b === "a" ? "da" : "de";
       continue;
     }
-    if (b === "da" || b === "dese" || b === "dey") {
+
+    if (a.toLowerCase() === "the") {
+      let res = vowel.test(b[0]) ? "de" : "da";
+      if (isUpper(a[0])) {
+        res = `${res[0].toUpperCase()}${res.slice(1)}`;
+      }
+      words[i] = res;
+      continue;
+    }
+  }
+
+  for (let i = 0; i < words.length - 1; i++) {
+    const a = words[i];
+    const b = words[i + 1];
+
+    if (itals.has(b)) {
       const last = a[a.length - 1];
       if (!vowel.test(last) && last !== "s" && letter.test(last)) {
         words[i] = `${a}-a`;
