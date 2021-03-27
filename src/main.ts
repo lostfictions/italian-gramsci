@@ -65,6 +65,40 @@ function italianize(sentence: string): string {
     .filter((w) => w.length > 0)
     .map((w) => wordRep(w));
 
+  // inflect negations
+  for (let i = 0; i < words.length - 2; i++) {
+    // const a = words[i];
+    const b = words[i + 1];
+    const c = words[i + 2];
+
+    if (c === "not") {
+      if (b === "were") {
+        words[i + 1] = "no";
+        words[i + 2] = "were";
+        continue;
+      }
+
+      if (b === "was") {
+        words[i + 1] = "no";
+        words[i + 2] = "was";
+        continue;
+      }
+
+      if (b === "is") {
+        words[i + 1] = "no";
+        words[i + 2] = "is";
+        continue;
+      }
+
+      if (b === "do" || b === "does") {
+        words[i + 1] = "no";
+        words[i + 2] = "";
+        continue;
+      }
+    }
+  }
+
+  // determiners => de/da
   for (let i = 0; i < words.length - 1; i++) {
     const a = words[i];
     const b = words[i + 1];
@@ -86,6 +120,7 @@ function italianize(sentence: string): string {
     }
   }
 
+  // the essential -a
   for (let i = 0; i < words.length - 1; i++) {
     const a = words[i];
     const b = words[i + 1];
@@ -99,8 +134,7 @@ function italianize(sentence: string): string {
     }
   }
 
-  const res = words.join(" ");
-  // console.log(`${sentence} => ${res}`);
+  const res = words.filter((w) => w.length > 0).join(" ");
   return res;
 }
 
