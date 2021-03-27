@@ -28,6 +28,17 @@ const mappings: Record<string, string> = {
 
 const itals = new Set(Object.values(mappings).concat("da", "de"));
 
+const exclamations = [
+  "Capisce?",
+  "Che bene.",
+  "Mamma mia!",
+  "🤌",
+  "Eccolo!",
+  "Ma dai!",
+  "Bene.",
+];
+let exclamationIdx = 0;
+
 const wordRep = (w: string) => {
   let adjusted = [w];
   if (punc.test(w[w.length - 1])) {
@@ -93,18 +104,25 @@ function italianize(sentence: string): string {
   return res;
 }
 
-const lines = readFileSync(
+const paras = readFileSync(
   join(__dirname, "..", "text", "cleaned.txt"),
   "utf-8"
 )
   .split("\n")
   .filter((l) => l.trim().length > 0)
+  // filter section heads
   .filter((l) => l !== l.toUpperCase());
 
-// https://stackoverflow.com/a/18914855
-const sentences = lines
-  .flatMap((par) => par.replace(/([.?!])\s*(?=[A-Z])/g, "$1|").split("|"))
-  .slice(100);
+const sentences = paras
+  .flatMap((par) =>
+    par
+      // naive sentence split https://stackoverflow.com/a/18914855
+      .replace(/([.?!])\s*(?=[A-Z])/g, "$1|")
+      .split("|")
+      // should insert a "maybe-exclamation" marker instead.
+      .concat(exclamations[exclamationIdx++ % exclamations.length])
+  )
+  .slice(0);
 
 const MAX_LENGTH = 280;
 
