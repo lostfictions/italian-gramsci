@@ -104,7 +104,10 @@ function italianize(sentence: string): string {
     const b = words[i + 1];
 
     // is a, of an => is-a da, of-a de
-    if (["is", "of", "as"].includes(a) && ["a", "an"].includes(b)) {
+    if (
+      ["is", "was", "of", "as", "by"].includes(a) &&
+      ["a", "an"].includes(b)
+    ) {
       // words[i] = `${a}-a`;
       words[i + 1] = b === "a" ? "da" : "de";
       continue;
@@ -208,7 +211,7 @@ for (const s of sentences) {
     } else {
       tweet += "…";
       tweets.push(tweet.trim());
-      tweet = "…";
+      tweet = `…${w}`;
     }
   }
 }
