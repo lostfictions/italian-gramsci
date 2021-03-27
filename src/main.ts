@@ -13,18 +13,18 @@ const letter = /[a-zA-Z]/;
 const punc = /[,:.!]/;
 const isUpper = (c: string) => c === c.toUpperCase();
 
-const mappings: Record<string, string> = {
+const mappings = new Map<string, string>([
   // could be contextual: 'de elite' vs 'da tendentiousness'
   // the: "da",
-  then: "den",
-  this: "dis",
-  that: "dat",
-  these: "dese",
-  those: "doze",
-  they: "dey",
-  there: "dere",
-  their: "dere",
-};
+  ["then", "den"],
+  ["this", "dis"],
+  ["that", "dat"],
+  ["these", "dese"],
+  ["those", "doze"],
+  ["they", "dey"],
+  ["there", "dere"],
+  ["their", "dere"],
+]);
 
 const itals = new Set(Object.values(mappings).concat("da", "de"));
 
@@ -45,7 +45,7 @@ const wordRep = (w: string) => {
     adjusted = [w.slice(0, -1), w[w.length - 1]];
   }
 
-  const r = mappings[adjusted[0].toLowerCase()];
+  const r = mappings.get(adjusted[0].toLowerCase());
   if (!r) return w;
 
   const upper = isUpper(adjusted[0][0]);
