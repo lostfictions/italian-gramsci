@@ -8,7 +8,7 @@ import { v4 as uuid } from "uuid";
 
 import { MASTODON_SERVER, MASTODON_TOKEN } from "./env";
 
-const vowel = /[aeiou]/;
+const vowel = /[aeiouAEIOU]/;
 const letter = /[a-zA-Z]/;
 const punc = /[,:.!]/;
 const isUpper = (c: string) => c === c.toUpperCase();
@@ -26,7 +26,11 @@ const mappings = new Map<string, string>([
   ["their", "dere"],
 ]);
 
-const itals = new Set(Object.values(mappings).concat("da", "de"));
+const itals = new Set(
+  [...mappings.values()]
+    .concat([...mappings.values()].map((w) => w.toUpperCase()))
+    .concat("da", "de", "DA", "DE")
+);
 
 // extra replacements, but which don't cause "do-a de" inflections
 [
@@ -46,6 +50,19 @@ const exclamations = [
 ];
 let exclamationIdx = 0;
 
+const transformMatchingCase = (from: string, to: string): string => {
+  if (isUpper(from)) {
+    return to.toUpperCase();
+  }
+  if (isUpper(from[0])) {
+    return `${to[0].toUpperCase()}${to.slice(1)}`;
+  }
+  return to;
+};
+
+const isWord = (lhs: string, rhs: string): boolean =>
+  lhs.toLowerCase() === rhs.toLowerCase();
+
 const wordRep = (w: string) => {
   let adjusted = [w];
   if (punc.test(w[w.length - 1])) {
@@ -55,12 +72,7 @@ const wordRep = (w: string) => {
   const r = mappings.get(adjusted[0].toLowerCase());
   if (!r) return w;
 
-  const upper = isUpper(adjusted[0][0]);
-  if (upper) {
-    adjusted[0] = `${r[0].toUpperCase()}${r.slice(1)}`;
-  } else {
-    adjusted[0] = r;
-  }
+  adjusted[0] = transformMatchingCase(adjusted[0], r);
 
   return adjusted.join("");
 };
@@ -114,20 +126,15 @@ function italianize(sentence: string): string {
 
     // is a, of an => is-a da, of-a de
     if (
-      ["is", "was", "of", "as", "by"].includes(a) &&
-      ["a", "an"].includes(b)
+      ["is", "was", "of", "as", "by"].some((w) => isWord(w, a)) &&
+      ["a", "an"].some((w) => isWord(w, b))
     ) {
-      // words[i] = `${a}-a`;
-      words[i + 1] = b === "a" ? "da" : "de";
+      words[i + 1] = transformMatchingCase(b, isWord(b, "a") ? "da" : "de");
       continue;
     }
 
-    if (a.toLowerCase() === "the") {
-      let res = vowel.test(b[0]) ? "de" : "da";
-      if (isUpper(a[0])) {
-        res = `${res[0].toUpperCase()}${res.slice(1)}`;
-      }
-      words[i] = res;
+    if (isWord(a, "the")) {
+      words[i] = transformMatchingCase(a, vowel.test(b[0]) ? "de" : "da");
       continue;
     }
   }
@@ -139,8 +146,8 @@ function italianize(sentence: string): string {
 
     if (itals.has(b)) {
       const last = a[a.length - 1];
-      if (!vowel.test(last) && last !== "s" && letter.test(last)) {
-        words[i] = `${a}-a`;
+      if (!vowel.test(last) && !isWord(last, "s") && letter.test(last)) {
+        words[i] = transformMatchingCase(a, `${a}-a`);
         continue;
       }
     }
@@ -149,10 +156,8 @@ function italianize(sentence: string): string {
   // it's-a
   for (let i = 0; i < words.length - 1; i++) {
     const a = words[i];
-    if (["its", "it's"].includes(a.toLowerCase())) {
-      words[i] = isUpper(a[0])
-        ? `${a[0].toUpperCase()}${a.slice(1)}-a`
-        : `${a}-a`;
+    if (["its", "it's", "of"].includes(a.toLowerCase())) {
+      words[i] = transformMatchingCase(a, `${a}-a`);
     }
   }
 
@@ -168,15 +173,15 @@ const paras = readFileSync(
   "utf-8"
 )
   .split("\n")
-  .filter((l) => l.trim().length > 0)
-  // filter section heads
-  .filter((l) => l !== l.toUpperCase());
+  .filter((l) => l.trim().length > 0);
+// filter section heads
+// .filter((l) => l !== l.toUpperCase());
 
 const sentences = paras
   .flatMap((par) => {
     const ss = par
-      // naive sentence split https://stackoverflow.com/a/18914855
-      .replace(/([.?!])\s*(?=[A-Z])/g, "$1|")
+      // naive sentence split adapted from https://stackoverflow.com/a/18914855
+      .replace(/(?<![A-Z\d]+)([.?!])\s*(?=[A-Z])/g, "$1|")
       .split("|");
 
     // could alternately insert a marker instead of an exclamation proper and
@@ -191,12 +196,22 @@ const sentences = paras
 
 const MAX_LENGTH = 280;
 
-const tweets: string[] = [];
+const tweets: (string | string[])[] = [];
 
 let tweet = "";
 
 for (const s of sentences) {
   const italianized = italianize(s);
+
+  // if the whole thing is uppercase, it's a title, tweet it solo
+  if (isUpper(italianized)) {
+    if (tweet.length > 0) {
+      tweets.push(tweet.trim());
+      tweet = "";
+    }
+    tweets.push(italianized);
+    continue;
+  }
 
   if (tweet.length + 1 + italianized.length < MAX_LENGTH) {
     tweet += ` ${italianized}`;
@@ -226,52 +241,77 @@ for (const s of sentences) {
     );
   }
 
+  // tweet group (gruppa).
+  const group: string[] = [];
+
   while (words.length > 0) {
     const w = words.shift()!;
     if (tweet.length + 1 + w.length < MAX_LENGTH - 1) {
       tweet += ` ${w}`;
     } else {
       tweet += "…";
-      tweets.push(tweet.trim());
+      group.push(tweet.trim());
       tweet = `…${w}`;
     }
   }
+
+  if (tweet.trim().length > 0) {
+    group.push(tweet.trim());
+    tweet = "";
+  }
+  tweets.push(group);
 }
 
 console.log("done splitting.");
 
 let i = 0;
 
-function makeLine() {
+function makeStatus() {
   if (i >= tweets.length) i = 0;
   return tweets[i++];
 }
 
 async function doTwoot(): Promise<void> {
-  const line = makeLine();
+  const s = makeStatus();
+  const statuses = typeof s === "string" ? [s] : s;
 
-  const idempotencyKey = uuid();
-
-  const status = await retry(
-    async () => {
-      const masto = await Masto.login({
-        uri: MASTODON_SERVER,
-        accessToken: MASTODON_TOKEN,
-      });
-
-      return masto.createStatus(
-        {
-          status: line,
-          visibility: "public",
-        },
-        idempotencyKey
-      );
-    },
-    { retries: 5 }
+  const masto = await retry(() =>
+    Masto.login({
+      uri: MASTODON_SERVER,
+      accessToken: MASTODON_TOKEN,
+    })
   );
 
-  console.log(line);
-  console.log(`${status.createdAt} -> ${status.uri}`);
+  let inReplyToId: string | null | undefined = null;
+
+  for (const status of statuses) {
+    const idempotencyKey = uuid();
+
+    // eslint-disable-next-line no-await-in-loop
+    const publishedToot = await retry(
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      () =>
+        masto.createStatus(
+          {
+            status,
+            visibility: "public",
+            inReplyToId,
+          },
+          idempotencyKey
+        ),
+      { retries: 5 }
+    );
+
+    inReplyToId = publishedToot.inReplyToId;
+
+    console.log(statuses);
+    console.log(`${publishedToot.createdAt} -> ${publishedToot.uri}`);
+
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((res) => {
+      setTimeout(() => res, 3000);
+    });
+  }
 }
 
 const argv = process.argv.slice(2);
@@ -280,7 +320,7 @@ if (argv.includes("local")) {
   console.log("Running locally!");
 
   setInterval(() => {
-    const l = makeLine();
+    const l = makeStatus();
     console.log(l);
     console.log(`(${l.length})\n`);
   }, 2000);
