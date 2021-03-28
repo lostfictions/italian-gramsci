@@ -28,14 +28,21 @@ const mappings = new Map<string, string>([
 
 const itals = new Set(Object.values(mappings).concat("da", "de"));
 
+// extra replacements, but which don't cause "do-a de" inflections
+[
+  // more to come?
+  ["italy", "Italy (Italia)"],
+].forEach(([from, to]) => mappings.set(from, to));
+
 const exclamations = [
   "Capisce?",
-  "Che bene.",
   "Mamma mia!",
+  "Che bene.",
   "🤌",
   "Eccolo!",
   "Ma dai!",
   "Bene.",
+  "Eyyy.",
 ];
 let exclamationIdx = 0;
 
@@ -64,6 +71,8 @@ function italianize(sentence: string): string {
     .map((w) => w.trim())
     .filter((w) => w.length > 0)
     .map((w) => wordRep(w));
+
+  let debugLog = false;
 
   // inflect negations
   for (let i = 0; i < words.length - 2; i++) {
@@ -137,7 +146,20 @@ function italianize(sentence: string): string {
     }
   }
 
+  // it's-a
+  for (let i = 0; i < words.length - 1; i++) {
+    const a = words[i];
+    if (["its", "it's"].includes(a.toLowerCase())) {
+      words[i] = isUpper(a[0])
+        ? `${a[0].toUpperCase()}${a.slice(1)}-a`
+        : `${a}-a`;
+    }
+  }
+
   const res = words.filter((w) => w.length > 0).join(" ");
+  if (debugLog) {
+    console.log(`${sentence}\n=>\n${res}\n\n`);
+  }
   return res;
 }
 
