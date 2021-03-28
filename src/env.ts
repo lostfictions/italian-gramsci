@@ -5,6 +5,10 @@ import { CaptureConsole } from "@sentry/integrations";
 export const {
   MASTODON_SERVER,
   MASTODON_TOKEN,
+  TWITTER_CONSUMER_KEY,
+  TWITTER_CONSUMER_SECRET,
+  TWITTER_ACCESS_KEY,
+  TWITTER_ACCESS_SECRET,
   SENTRY_DSN,
   isDev,
 } = envalid.cleanEnv(
@@ -12,6 +16,10 @@ export const {
   {
     MASTODON_SERVER: envalid.url({ default: "https://mastodon.social" }),
     MASTODON_TOKEN: envalid.str(),
+    TWITTER_CONSUMER_KEY: envalid.str(),
+    TWITTER_CONSUMER_SECRET: envalid.str(),
+    TWITTER_ACCESS_KEY: envalid.str(),
+    TWITTER_ACCESS_SECRET: envalid.str(),
     SENTRY_DSN: envalid.str({ default: "" }),
   },
   { strict: true }
