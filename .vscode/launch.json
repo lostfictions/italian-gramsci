@@ -5,15 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Main",
+      "name": "Debug Main (ts-node)",
       "type": "node",
       "request": "launch",
       "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
       "args": [
-        "--transpileOnly",
+        "--transpile-only",
         "${workspaceRoot}/src/main.ts",
-        "--",
-        "local"
+        // "--",
+        // "local"
       ],
       "cwd": "${workspaceRoot}",
       "protocol": "inspector"
@@ -23,7 +23,12 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
-      "args": ["--transpileOnly", "${relativeFile}", "--", "local"],
+      "args": [
+        "--transpileOnly",
+        "${relativeFile}",
+        "--",
+        "local"
+      ],
       "cwd": "${workspaceRoot}",
       "protocol": "inspector"
     }

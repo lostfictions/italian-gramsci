@@ -1,47 +1,54 @@
 require("source-map-support").install();
 
+import { readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+import { strict as assert } from "assert";
+
 import Masto from "masto";
 import { TwitterClient } from "twitter-api-client";
 import retry from "async-retry";
 import { v4 as uuid } from "uuid";
 
 import {
+  DATA_DIR,
   MASTODON_SERVER,
   MASTODON_TOKEN,
   TWITTER_ACCESS_KEY,
   TWITTER_ACCESS_SECRET,
   TWITTER_CONSUMER_KEY,
   TWITTER_CONSUMER_SECRET,
-  isDev,
 } from "./env";
 
-import { generate, generateAndWrite } from "./generate";
+import { generateAndWrite } from "./generate";
 
-console.log("generating...");
-const tweets = generate();
+function makeStatus(i?: number) {
+  if (i == null) {
+    // eslint-disable-next-line no-param-reassign
+    i = parseInt(readFileSync(join(DATA_DIR, "last"), "utf-8"));
+  }
+  const statuses = JSON.parse(
+    readFileSync(join(DATA_DIR, "statuses.json"), "utf-8")
+  );
+  assert.ok(Array.isArray(statuses));
 
-if (isDev) {
-  console.log("generating and writing...");
-  generateAndWrite();
-  console.log("done writing.");
-}
+  const next = (i + 1) % statuses.length;
 
-let i = 0;
-
-function makeStatus() {
-  if (i >= tweets.length) i = 0;
-  return tweets[i++];
+  return [next, statuses[next] as string | string[]] as const;
 }
 
 async function doTwoot(): Promise<void> {
-  const s = makeStatus();
+  const [next, s] = makeStatus();
   const statuses = typeof s === "string" ? [s] : s;
 
-  // prettier-ignore
   const rets = await Promise.allSettled([
     // doToot(statuses),
-    doTweet(statuses)
+    doTweet(statuses),
   ]);
+
+  if (rets.some((r) => r.status === "fulfilled")) {
+    writeFileSync(join(DATA_DIR, "last"), JSON.stringify(next));
+    console.log("wrote latest i: ", next);
+  }
 
   console.log("Done", rets);
 }
@@ -80,8 +87,10 @@ async function doToot(statuses: string[]): Promise<void> {
     console.log(`${publishedToot.createdAt} -> ${publishedToot.uri}\n======`);
 
     // eslint-disable-next-line no-await-in-loop
-    await new Promise((res) => {
-      setTimeout(() => res, 3000);
+    await new Promise<void>((res) => {
+      setTimeout(() => {
+        res();
+      }, 3000);
     });
   }
 }
@@ -120,8 +129,10 @@ async function doTweet(statuses: string[]): Promise<void> {
     );
 
     // eslint-disable-next-line no-await-in-loop
-    await new Promise((res) => {
-      setTimeout(() => res, 3000);
+    await new Promise<void>((res) => {
+      setTimeout(() => {
+        res();
+      }, 3000);
     });
   }
 }
@@ -131,13 +142,21 @@ const argv = process.argv.slice(2);
 if (argv.includes("local")) {
   console.log("Running locally!");
 
+  if (argv.includes("regen")) {
+    console.log("generating and writing...");
+    generateAndWrite();
+    console.log("done writing.");
+  }
+
+  let i = 0;
+
   setInterval(() => {
-    const l = makeStatus();
-    console.log(l);
+    const [n, l] = makeStatus(i);
+    console.log(n, ":", l);
+    i = n;
     console.log(`(${l.length})\n`);
   }, 2000);
 } else {
   console.log("Running in production!");
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  doTwoot().then(() => process.exit(0));
+  void doTwoot().then(() => process.exit(0));
 }
