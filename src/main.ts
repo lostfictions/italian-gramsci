@@ -41,7 +41,8 @@ async function doTwoot(): Promise<void> {
   const statuses = typeof s === "string" ? [s] : s;
 
   const rets = await Promise.allSettled([
-    // doToot(statuses),
+    // tweet/toot in parallel
+    doToot(statuses),
     doTweet(statuses),
   ]);
 
