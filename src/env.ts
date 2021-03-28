@@ -9,6 +9,7 @@ export const {
   TWITTER_CONSUMER_SECRET,
   TWITTER_ACCESS_KEY,
   TWITTER_ACCESS_SECRET,
+  DATA_DIR,
   SENTRY_DSN,
   isDev,
 } = envalid.cleanEnv(
@@ -20,6 +21,7 @@ export const {
     TWITTER_CONSUMER_SECRET: envalid.str(),
     TWITTER_ACCESS_KEY: envalid.str(),
     TWITTER_ACCESS_SECRET: envalid.str(),
+    DATA_DIR: envalid.str({ default: "persist" }),
     SENTRY_DSN: envalid.str({ default: "" }),
   },
   { strict: true }
