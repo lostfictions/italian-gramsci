@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { strict as assert } from "assert";
 import { writeFile } from "fs/promises";
@@ -16,10 +16,22 @@ import {
 
 import { generateAndWrite } from "./generate";
 
-function makeStatus(i?: number) {
+const DEV_FILE_NAME = "last-dev";
+const PROD_FILE_NAME = "last";
+
+function makeStatus(indexFileName: string, i?: number) {
   if (i == null) {
+    if (!existsSync(join(PERSIST_DIR, indexFileName))) {
+      const initialValue = JSON.stringify(0);
+      writeFileSync(join(PERSIST_DIR, indexFileName), initialValue);
+      console.log(
+        `wrote value ${initialValue} to new index file ${indexFileName}`,
+      );
+    }
+
+    const lastIndex = readFileSync(join(PERSIST_DIR, indexFileName), "utf-8");
     // eslint-disable-next-line no-param-reassign
-    i = parseInt(readFileSync(join(PERSIST_DIR, "last"), "utf-8"));
+    i = parseInt(lastIndex);
   }
   const statuses = JSON.parse(
     readFileSync(join(PERSIST_DIR, "statuses.json"), "utf-8"),
@@ -32,7 +44,7 @@ function makeStatus(i?: number) {
 }
 
 async function doTwoot(): Promise<void> {
-  const [next, stat] = makeStatus();
+  const [next, stat] = makeStatus(PROD_FILE_NAME);
   const statuses = typeof stat === "string" ? [stat] : stat;
 
   const results = await twoot(statuses, [
@@ -64,7 +76,7 @@ async function doTwoot(): Promise<void> {
     }
   }
 
-  await writeFile(join(PERSIST_DIR, "last"), JSON.stringify(next));
+  await writeFile(join(PERSIST_DIR, PROD_FILE_NAME), JSON.stringify(next));
   console.log("wrote latest i: ", next);
 }
 
@@ -77,15 +89,18 @@ if (argv.includes("local")) {
     console.log("generating and writing...");
     generateAndWrite();
     console.log("done writing.");
+
+    const statuses = JSON.parse(
+      readFileSync(join(PERSIST_DIR, "statuses.json"), "utf-8"),
+    );
+    console.log(`Generated ${statuses.length} statuses.`);
   }
 
-  let i = 0;
-
   setInterval(() => {
-    const [n, l] = makeStatus(i);
-    console.log(n, ":", l);
-    i = n;
-    console.log(`(${l.length})\n`);
+    const [next, stat] = makeStatus(DEV_FILE_NAME);
+    console.log(next, ":", stat);
+    console.log(`(${stat.length})\n`);
+    writeFileSync(join(PERSIST_DIR, DEV_FILE_NAME), JSON.stringify(next));
   }, 2000);
 } else {
   console.log("Running in production!");

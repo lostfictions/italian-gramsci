@@ -3,6 +3,8 @@ import { join } from "path";
 
 import { PERSIST_DIR } from "./env";
 
+const STATUS_CHARACTER_LIMIT = 280;
+
 const vowel = /[aeiouAEIOU]/;
 const letter = /[a-zA-Z]/;
 const punc = /[,:.!]/;
@@ -188,8 +190,6 @@ export function generate() {
     // offset for debugging
     .slice(0);
 
-  const MAX_LENGTH = 280;
-
   const tweets: (string | string[])[] = [];
 
   let tweet = "";
@@ -207,7 +207,7 @@ export function generate() {
       continue;
     }
 
-    if (tweet.length + 1 + italianized.length < MAX_LENGTH) {
+    if (tweet.length + 1 + italianized.length < STATUS_CHARACTER_LIMIT) {
       tweet += ` ${italianized}`;
       continue;
     }
@@ -216,7 +216,7 @@ export function generate() {
     if (tweet.length > 0) {
       tweets.push(tweet.trim());
 
-      if (italianized.length < MAX_LENGTH) {
+      if (italianized.length < STATUS_CHARACTER_LIMIT) {
         tweet = italianized;
         continue;
       }
@@ -229,9 +229,9 @@ export function generate() {
       .map((w) => w.trim())
       .filter((w) => w.length > 0);
 
-    if (words.some((w) => w.length > MAX_LENGTH - 1)) {
+    if (words.some((w) => w.length > STATUS_CHARACTER_LIMIT - 1)) {
       throw new Error(
-        `unsplittable token: ${words.find((w) => w.length > MAX_LENGTH - 1)}`,
+        `unsplittable token: ${words.find((w) => w.length > STATUS_CHARACTER_LIMIT - 1)}`,
       );
     }
 
@@ -240,7 +240,7 @@ export function generate() {
 
     while (words.length > 0) {
       const w = words.shift()!;
-      if (tweet.length + 1 + w.length < MAX_LENGTH - 1) {
+      if (tweet.length + 1 + w.length < STATUS_CHARACTER_LIMIT - 1) {
         tweet += ` ${w}`;
       } else {
         tweet += "…";
