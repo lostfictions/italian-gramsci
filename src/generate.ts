@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
-import { DATA_DIR } from "./env";
+import { PERSIST_DIR } from "./env";
 
 const vowel = /[aeiouAEIOU]/;
 const letter = /[a-zA-Z]/;
@@ -24,14 +24,16 @@ const mappings = new Map<string, string>([
 const itals = new Set(
   [...mappings.values()]
     .concat([...mappings.values()].map((w) => w.toUpperCase()))
-    .concat("da", "de", "DA", "DE")
+    .concat("da", "de", "DA", "DE"),
 );
 
 // extra replacements, but which don't cause "do-a de" inflections
-[
+for (const [from, to] of [
   // more to come?
   ["italy", "Italy (Italia)"],
-].forEach(([from, to]) => mappings.set(from, to));
+]) {
+  mappings.set(from, to);
+}
 
 const exclamations = [
   "Capisce?",
@@ -60,8 +62,8 @@ const isWord = (lhs: string, rhs: string): boolean =>
 
 const wordRep = (w: string) => {
   let adjusted = [w];
-  if (punc.test(w[w.length - 1])) {
-    adjusted = [w.slice(0, -1), w[w.length - 1]];
+  if (punc.test(w.at(-1)!)) {
+    adjusted = [w.slice(0, -1), w.at(-1)!];
   }
 
   const r = mappings.get(adjusted[0].toLowerCase());
@@ -79,7 +81,7 @@ function italianize(sentence: string): string {
     .filter((w) => w.length > 0)
     .map((w) => wordRep(w));
 
-  let debugLog = false;
+  const debugLog = false;
 
   // inflect negations
   for (let i = 0; i < words.length - 2; i++) {
@@ -125,12 +127,8 @@ function italianize(sentence: string): string {
       ["a", "an"].some((w) => isWord(w, b))
     ) {
       words[i + 1] = transformMatchingCase(b, isWord(b, "a") ? "da" : "de");
-      continue;
-    }
-
-    if (isWord(a, "the")) {
+    } else if (isWord(a, "the")) {
       words[i] = transformMatchingCase(a, vowel.test(b[0]) ? "de" : "da");
-      continue;
     }
   }
 
@@ -140,7 +138,7 @@ function italianize(sentence: string): string {
     const b = words[i + 1];
 
     if (itals.has(b)) {
-      const last = a[a.length - 1];
+      const last = a.at(-1)!;
       if (!vowel.test(last) && !isWord(last, "s") && letter.test(last)) {
         words[i] = transformMatchingCase(a, `${a}-a`);
         continue;
@@ -166,7 +164,7 @@ function italianize(sentence: string): string {
 export function generate() {
   const paras = readFileSync(
     join(__dirname, "..", "text", "cleaned.txt"),
-    "utf-8"
+    "utf-8",
   )
     .split("\n")
     .filter((l) => l.trim().length > 0);
@@ -177,7 +175,7 @@ export function generate() {
     .flatMap((par) => {
       const ss = par
         // naive sentence split adapted from https://stackoverflow.com/a/18914855
-        .replace(/(?<![A-Z\d]+)([.?!])\s*(?=[A-Z])/g, "$1|")
+        .replaceAll(/(?<![A-Z\d]+)([.?!])\s*(?=[A-Z])/g, "$1|")
         .split("|");
 
       // could alternately insert a marker instead of an exclamation proper and
@@ -233,7 +231,7 @@ export function generate() {
 
     if (words.some((w) => w.length > MAX_LENGTH - 1)) {
       throw new Error(
-        `unsplittable token: ${words.find((w) => w.length > MAX_LENGTH - 1)}`
+        `unsplittable token: ${words.find((w) => w.length > MAX_LENGTH - 1)}`,
       );
     }
 
@@ -265,7 +263,7 @@ export function generateAndWrite() {
   const tweets = generate();
 
   writeFileSync(
-    join(DATA_DIR, "statuses.json"),
-    JSON.stringify(tweets, undefined, 2)
+    join(PERSIST_DIR, "statuses.json"),
+    JSON.stringify(tweets, undefined, 2),
   );
 }

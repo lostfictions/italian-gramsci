@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2019",
-    "lib": [
-      "ES2020"
-    ],
-    "module": "commonjs",
+    // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    "lib": ["ES2023"],
+    "module": "CommonJS",
+    "target": "ES2022",
     "outDir": "dist",
     "allowJs": true,
     "strict": true,
