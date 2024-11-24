@@ -30,6 +30,7 @@ user lives.)
 this bot uses [dotenv](https://github.com/motdotla/dotenv), so if you're testing things locally, you can stick any of the above environment variables in a file named `.env` in the project root. (it's gitignored, so there's no risk of accidentally committing private API tokens you put in there.)
 when running on github actions, state (like which line of prose was last posted) is persisted across bot runs by pushing it to an "orphan" git branch. the action is configured to do this for you automatically.
 
-> [!IMPORTANT] as part of this branch-based persistence approach, you'll need the orphan git branch to already exist in the repo you're pushing to. the branch is appropriately named `persist`; if you've forked this repo with all its branches, this should be included. if not -- well, it's a bit clunky to create. for now, the recommended approach is to make sure your local clone has the correct remote github repo set and that the file `persist/statuses.json` exists locally (you may have to run `pnpm regen`). then from the root of the repo run `npx gh-pages -d persist -b persist`.
+> [!IMPORTANT]
+> as part of this branch-based persistence approach, you'll need the orphan git branch to already exist in the repo you're pushing to. the branch is appropriately named `persist`; if you've forked this repo with all its branches, this should be included. if not -- well, it's a bit clunky to create. for now, the recommended approach is to make sure your local clone has the correct remote github repo set and that the file `persist/statuses.json` exists locally (you may have to run `pnpm regen`). then from the root of the repo run `npx gh-pages -d persist -b persist`.
 
 ###### [more bots?](https://github.com/lostfictions?tab=repositories&q=botally)
