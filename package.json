@@ -7,6 +7,7 @@
   "scripts": {
     "start": "NODE_ENV=production node --enable-source-maps dist/main.js",
     "dev": "NODE_ENV=development ts-node -T src/main.ts -- local",
+    "regen": "NODE_ENV=development ts-node -T src/main.ts -- local regen",
     "build": "rm -rf dist/ && tsc",
     "test": "run-p -cl test:*",
     "test:ts": "tsc --noEmit",
