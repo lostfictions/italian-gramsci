@@ -21,9 +21,7 @@ if you clone the repository you can run your own remixed version that posts to m
 - `MASTODON_TOKEN`: a Mastodon user API token
 - `BSKY_USERNAME`: the bot's username on Bluesky
 - `BSKY_PASSWORD`: the app password for the bot's account on Bluesky
-- `DATA_DIR`: the directory in which to search for cat parts and store data on
-  which words have been used recently. (default: 'data', already provided
-  locally)
+- `PERSIST_DIR`: the directory in which to store state, like which lines have already been posted. (default: `persist`)
 
 additionally, `MASTODON_SERVER` (hardcoded in [src/env.ts](src/env.ts)) controls
 the mastodon instance to which API calls should be made (usually where the bot
