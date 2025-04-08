@@ -1,9 +1,4 @@
 {
-  "search.exclude": {
-    "**/node_modules": true,
-    "dist/*": true,
-    "persist/*": true
-  },
   "typescript.tsdk": "node_modules/typescript/lib",
   "eslint.validate": [
     "javascript",
@@ -11,10 +6,4 @@
     "typescript",
     "typescriptreact"
   ],
-  "files.exclude": {
-    "**/.git": true,
-    "**/.DS_Store": true,
-    "**/node_modules": true,
-    "**/dist": true
-  }
 }

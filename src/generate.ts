@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
-import { PERSIST_DIR } from "./env";
+import { PERSIST_DIR } from "./env.ts";
 
+// FIXME: was twitter's limit, no longer true for bsky or masto
 const STATUS_CHARACTER_LIMIT = 280;
 
 const vowel = /[aeiouAEIOU]/;

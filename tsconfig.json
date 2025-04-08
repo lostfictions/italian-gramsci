@@ -2,10 +2,13 @@
   "compilerOptions": {
     // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "lib": ["ES2023"],
-    "module": "CommonJS",
-    "target": "ES2022",
+    "target": "esnext",
+    "module": "nodenext",
     "outDir": "dist",
-    "allowJs": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

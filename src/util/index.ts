@@ -27,22 +27,38 @@ export function randomInArray<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// TODO: handle empty objects, zero weights
-export interface WeightedValues {
-  [value: string]: number;
-}
-export function randomByWeight<T extends WeightedValues, K extends keyof T>(
+export function randomByWeight<T extends Record<string, number>>(
   weights: T,
-): K {
-  const keys = Object.keys(weights) as K[];
-  const sum = Object.values(weights).reduce((p, c) => {
+): keyof T;
+export function randomByWeight<T>(weights: [T, number][] | Map<T, number>): T;
+export function randomByWeight<T>(
+  weights: [T, number][] | Map<T, number> | Record<string, number>,
+): T | string {
+  const weightPairs: [T | string, number][] =
+    weights instanceof Map
+      ? [...weights.entries()]
+      : Array.isArray(weights)
+        ? weights
+        : Object.entries(weights);
+
+  const keys: (T | string)[] = [];
+  const values: number[] = [];
+  for (const [k, v] of weightPairs) {
+    keys.push(k);
+    values.push(v);
+  }
+
+  const sum = values.reduce((p, c) => {
     if (c < 0) throw new Error("Negative weight!");
     return p + c;
   }, 0);
+
   if (sum === 0) throw new Error("Weights add up to zero!");
+
   const choose = Math.floor(Math.random() * sum);
+
   for (let i = 0, count = 0; i < keys.length; i++) {
-    count += weights[keys[i]];
+    count += values[i];
     if (count > choose) {
       return keys[i];
     }

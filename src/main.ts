@@ -12,9 +12,9 @@ import {
   MASTODON_SERVER,
   MASTODON_TOKEN,
   PERSIST_DIR,
-} from "./env";
+} from "./env.ts";
 
-import { generateAndWrite } from "./generate";
+import { generateAndWrite } from "./generate.ts";
 
 const DEV_FILE_NAME = "last-dev";
 const PROD_FILE_NAME = "last";

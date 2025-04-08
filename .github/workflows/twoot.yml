@@ -23,7 +23,6 @@ jobs:
           node-version-file: ".node-version"
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
       - run: pnpm start
         env:
           MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}

@@ -3,37 +3,34 @@
   "version": "0.0.1",
   "description": "it's-a me, italian gramsci! i tweet-a da thoughts i have while inna da prison.",
   "private": true,
+  "author": "s <https://github.com/lostfictions>",
+  "license": "AGPL-3.0",
   "main": "dist/main.js",
+  "type": "module",
   "scripts": {
-    "start": "NODE_ENV=production node --enable-source-maps dist/main.js",
-    "dev": "NODE_ENV=development ts-node -T src/main.ts -- local",
-    "regen": "NODE_ENV=development ts-node -T src/main.ts -- local regen",
-    "build": "rm -rf dist/ && tsc",
+    "start": "NODE_ENV=production node --experimental-strip-types src/main.ts",
+    "dev": "NODE_ENV=development node --experimental-strip-types src/main.ts -- local",
+    "regen": "NODE_ENV=development node --experimental-strip-types src/main.ts -- local regen",
     "test": "run-p -cl test:*",
     "test:ts": "tsc --noEmit",
     "test:eslint": "eslint --color 'src/**/*'",
     "test:prettier": "prettier 'src/**' -l",
     "prettier": "prettier 'src/**/*' --write"
   },
-  "author": "s <https://github.com/lostfictions>",
-  "license": "AGPL-3.0",
   "dependencies": {
-    "@sentry/integrations": "^7.114.0",
-    "@sentry/node": "^8.40.0",
-    "dotenv": "^16.4.5",
-    "twoot": "0.4.0",
-    "znv": "^0.4.0",
-    "zod": "^3.22.2"
+    "@sentry/node": "^9.11.0",
+    "dotenv": "^16.4.7",
+    "twoot": "0.5.0",
+    "znv": "^0.5.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "^20.17.7",
-    "eslint": "^8.57.1",
-    "eslint-config-lostfictions": "^6.1.0",
-    "fast-check": "^3.23.1",
+    "@types/node": "^22.14.0",
+    "eslint": "^9.24.0",
+    "eslint-config-lostfictions": "^7.0.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
   },
-  "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
+  "packageManager": "pnpm@10.8.0+sha512.0e82714d1b5b43c74610193cb20734897c1d00de89d0e18420aebc5977fa13d780a9cb05734624e81ebd81cc876cd464794850641c48b9544326b5622ca29971"
 }
